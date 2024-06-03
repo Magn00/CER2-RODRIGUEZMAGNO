@@ -1,0 +1,76 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+header .navbar-custom {
+    background-color: #004C97;
+    padding: 0;
+}
+
+header .navbar-brand img {
+    margin-right: 10px;
+}
+
+header .navbar-brand-text {
+    font-weight: bold;
+    color: white;
+}
+
+section {
+    padding: 60px 0;
+}
+
+section h2 {
+    margin-bottom: 30px;
+}
+section#inicio h1 {
+    font-size: 5rem;
+}
+
+section#inicio p {
+    font-size: 2rem;
+}
+.navbar-custom .navbar-nav .nav-link {
+    color: white !important;
+}
+
+.navbar-custom .navbar-brand-text {
+    color: white !important;
+}
+
+section#inicio {
+    background: url('../img/svm.jpg') no-repeat center center/cover;
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+section#proyectos ul {
+    list-style-type: none;
+}
+
+section#proyectos ul li {
+    background: #e9ecef;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+section#login {
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 15px;
+}
+

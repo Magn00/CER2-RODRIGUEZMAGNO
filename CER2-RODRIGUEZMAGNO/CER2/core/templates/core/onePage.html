@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Iniciativas Estudiantiles</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'core/css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <img src="{% static 'core/img/Barra Colores.png' %}" width="30" height="50" alt="Logo de la universidad">
+                    <span class="navbar-brand-text">PIE USM SVM</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#inicio">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#proyectos">Proyectos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#login">Iniciar Sesión</a>
+                        </li>
+                        {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link nav-link" >Cerrar Sesión</button>
+                            </form>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <section id="inicio" class="p-5 text-center bg-light d-flex align-items-center justify-content-center">
+        <div class="container">
+            <h1>Portal de Iniciativas Estudiantiles</h1>
+            <p>Universidad Santa Maria - Sede Viña del Mar</p>
+        </div>
+        </section>
+    </header>
+
+
+
+    <section id="proyectos" class="p-5">
+        <div class="container">
+            <h2>Proyectos</h2>
+            <form method="get" action="{% url 'onePage' %}">
+                {% if user.profesor %}
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="sin_patrocinio" name="sin_patrocinio" value="1" {% if request.GET.sin_patrocinio %}checked{% endif %}>
+                        <label class="form-check-label" for="sin_patrocinio">Mostrar solo proyectos sin patrocinio</label>
+                    </div>
+                {% else %}
+                    <div class="mb-3">
+                        <label for="tematica" class="form-label">Filtrar por temática:</label>
+                        <select class="form-select" id="tematica" name="tematica">
+                            <option value="">Todos los Temas</option>
+                            {% for proyecto in proyectos %}
+                                <option value="{{ proyecto.tematica }}">{{ proyecto.tematica }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </form>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre Proyecto</th>
+                        <th>Estudiante</th>
+                        <th>Tema</th>
+                        <th>Profesor</th>
+                        {% if user.is_authenticated %}
+                            <th>Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proyecto in proyectos %}
+                        <tr>
+                            <td>{{ proyecto.titulo }}</td>
+                            <td>{{ proyecto.estudiante.usuario.first_name }} {{ proyecto.estudiante.usuario.last_name }}</td>
+                            <td>{{ proyecto.tematica }}</td>
+                            <td>{% if proyecto.profesor %}{{ proyecto.profesor.usuario.first_name }} {{ proyecto.profesor.usuario.last_name }}{% else %}Sin Profesor{% endif %}</td>
+                            <td>
+                                {% if user.profesor and not proyecto.profesor %}
+                                    <form method="post" action="{% url 'patrocinar_proyecto' proyecto.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success btn-sm">Patrocinar</button>
+                                    </form>
+                                {% endif %}
+                                {% if proyecto.estudiante.usuario == user %}
+                                    <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#formEditarProyecto{{ proyecto.id }}" aria-expanded="false" aria-controls="formEditarProyecto{{ proyecto.id }}">Editar</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr class="collapse" id="formEditarProyecto{{ proyecto.id }}">
+                            <td colspan="5">
+                                <form method="post" action="{% url 'modificar_proyecto' proyecto.id %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="titulo" class="form-label">Título del Proyecto</label>
+                                        <input type="text" class="form-control" id="titulo" name="titulo" value="{{ proyecto.titulo }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="descripcion" class="form-label">Descripción</label>
+                                        <textarea class="form-control" id="descripcion" name="descripcion" required>{{ proyecto.descripcion }}</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="tematica" class="form-label">Temática</label>
+                                        <input type="text" class="form-control" id="tematica" name="tematica" value="{{ proyecto.tematica }}" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if user.is_authenticated and user.estudiante %}
+            <button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#formNuevoProyecto" aria-expanded="false" aria-controls="formNuevoProyecto">
+                Ingresar Nueva Propuesta de Proyecto
+            </button>
+            <div class="collapse" id="formNuevoProyecto">
+                <form method="post" action="{% url 'nuevo_proyecto' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="titulo" class="form-label">Título del Proyecto</label>
+                        <input type="text" class="form-control" id="titulo" name="titulo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tematica" class="form-label">Temática</label>
+                        <input type="text" class="form-control" id="tematica" name="tematica" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Ingresar Proyecto</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section id="login" class="p-5 bg-light">
+        <div class="container">
+            <h2>Iniciar Sesión</h2>
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="username" class="form-label">Usuario</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+            </form>
+        </div>
+    </section>
+
+    <script src="{% static 'core/js/bootstrap.bundle.js' %}"></script>
+</body>
+</html>
